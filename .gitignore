@@ -42,8 +42,9 @@ user-secrets/
 # --- IMPORTANT EXCEPTIONS for JSON files ---
 # Re-include essential configuration files that should be in version control.
 # Modify these lines based on your project's specific needs.
-!appsettings.json
-!launchSettings.json
+appsettings.json
+appsettings.Development.json
+launchSettings.json
 !bundleconfig.json
 !compilerconfig.json
 
