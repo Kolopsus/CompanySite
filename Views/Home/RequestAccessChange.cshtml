@@ -1,0 +1,89 @@
+@model CompanySite.Models.AccessRequestViewModel
+@{
+    ViewData["Title"] = "Request an access change";
+}
+
+<div class="container">
+    <h2>Request an Access Change</h2>
+    
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum at magna tellus. Vivamus sagittis ligula in massa tempor, vel ultricies metus vehicula.</p>
+    
+    <p>Sed consectetur, ipsum a blandit molestie, turpis lorem facilisis magna, sed pulvinar massa nunc id lorem. Nulla facilisi.</p>
+    
+    <form id="accessRequestForm">
+        <div class="form-group">
+            <label>Choose action</label>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="requestType" value="A" checked onchange="updateLabels()"> Add new user
+                </label>
+                <label>
+                    <input type="radio" name="requestType" value="R" onchange="updateLabels()"> Remove user
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="yourName">Your name</label>
+            <select class="form-control" id="yourName" name="yourName">
+                <option value="">Select your name</option>
+                @foreach (var user in Model.Users)
+                {
+                    <option value="@user.UserName">@user.UserName</option>
+                }
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="employeeName">Employee Name (to <span id="actionText">add</span> access)</label>
+            <input type="text" class="form-control" id="employeeName" name="employeeName">
+        </div>
+        
+        <div class="form-group">
+            <label for="employeeId">Employee Identificator (to <span id="actionText2">add</span> access)</label>
+            <input type="text" class="form-control" id="employeeId" name="employeeId">
+        </div>
+        
+        <div class="form-group">
+            <label for="requestDetails">Describe specifics about access like region, database or client name</label>
+            <textarea class="form-control" id="requestDetails" name="requestDetails" rows="4"></textarea>
+        </div>
+        
+        <button type="button" class="btn btn-primary" onclick="submitRequest()">Submit request</button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function updateLabels() {
+            var action = $('input[name="requestType"]:checked').val() === 'A' ? 'add' : 'remove';
+            $('#actionText').text(action);
+            $('#actionText2').text(action);
+        }
+        
+        function submitRequest() {
+            var formData = {
+                requestType: $('input[name="requestType"]:checked').val(),
+                yourName: $('#yourName').val(),
+                employeeName: $('#employeeName').val(),
+                employeeId: $('#employeeId').val(),
+                requestDetails: $('#requestDetails').val()
+            };
+            
+            if (!formData.yourName || !formData.employeeName || !formData.employeeId || !formData.requestDetails) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            $.post('@Url.Action("SubmitAccessRequest", "Home")', formData, function(response) {
+                if (response.success) {
+                    alert(response.message);
+                    $('#accessRequestForm')[0].reset();
+                    updateLabels();
+                } else {
+                    alert(response.message);
+                }
+            });
+        }
+    </script>
+}

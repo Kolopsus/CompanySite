@@ -1,0 +1,58 @@
+# IDE and tool-specific files
+.idea/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build and publish outputs
+[Bb]in/
+[Oo]bj/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+
+# User-specific files and local configuration that should not be committed
+appsettings.Development.json
+secrets.json
+user-secrets/
+*.DotSettings.user
+
+# Log files and temporary files
+*.log
+*.DS_Store
+*.swp
+
+# NuGet packages folder
+[Pp]ackages/
+
+# Cache and temporary files from various tools
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.[Cc]overage.xml
+*.[Cc]overage.html
+
+# Ignoring all JSON files as requested
+*.json
+
+# --- IMPORTANT EXCEPTIONS for JSON files ---
+# Re-include essential configuration files that should be in version control.
+# Modify these lines based on your project's specific needs.
+!appsettings.json
+!launchSettings.json
+!bundleconfig.json
+!compilerconfig.json
+
+# Operating System generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Other
+*.nupkg
+*.bak

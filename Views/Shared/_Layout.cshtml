@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CompanySite : @ViewData["SubpageTitle"]</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="logo-section">
+            <img src="~/images/logo.jpg" alt="Company Logo" />
+        </div>
+        
+        <div class="title-section">
+            <h1>CompanySite : @ViewData["SubpageTitle"]</h1>
+        </div>
+        
+        <nav class="menu-section">
+            <ul>
+                <li><a href="@Url.Action("Index", "Home")" class="@((ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "Index" ? "active" : "")">Home</a></li>
+                <li><a href="@Url.Action("AvailableReports", "Home")" class="@((ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "AvailableReports" ? "active" : "")">Available reports</a></li>
+                <li><a href="@Url.Action("DatabaseStatus", "Home")" class="@((ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "DatabaseStatus" ? "active" : "")">Database status</a></li>
+                <li><a href="@Url.Action("ReportIncident", "Home")" class="@((ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "ReportIncident" ? "active" : "")">Report an incident / request a re-run</a></li>
+                <li><a href="@Url.Action("RequestReportChange", "Home")" class="@((ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "RequestReportChange" ? "active" : "")">Request a report change</a></li>
+                <li><a href="@Url.Action("RequestAccessChange", "Home")" class="@((ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "RequestAccessChange" ? "active" : "")">Request an access change</a></li>
+                <li><a href="@Url.Action("SubmittedAccessRequests", "Home")" class="@((ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "SubmittedAccessRequests" ? "active" : "")">Submitted access requests</a></li>
+                <li><a href="@Url.Action("SchedulesDashboard", "Home")" class="@((ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "SchedulesDashboard" ? "active" : "")">Schedules dashboard</a></li>
+                <li><a href="@Url.Action("Help", "Home")" class="@((ViewContext.RouteData.Values["action"]?.ToString() ?? "") == "Help" ? "active" : "")">Help</a></li>
+            </ul>
+        </nav>
+        
+        <main class="main-body-section">
+            @RenderBody()
+        </main>
+        
+        <footer class="footer-section">
+            <p>Developed by <a href="mailto:tech@CompanySite.com">MyCompanyTech</a></p>
+        </footer>
+    </div>
+    
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

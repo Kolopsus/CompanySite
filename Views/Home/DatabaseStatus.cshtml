@@ -1,0 +1,92 @@
+@model List<CompanySite.Models.DatabaseStatus>
+@{
+    ViewData["Title"] = "Database Status";
+}
+
+<div class="container">
+    <h2>Database Status</h2>
+    
+    <div class="button-group">
+        <button class="btn btn-primary" onclick="refreshTable()">
+            <span id="refreshText">Refresh Table</span>
+            <span id="refreshLoader" class="loading" style="display:none;"></span>
+        </button>
+        <button class="btn btn-success" onclick="exportToExcel()">Export to Excel</button>
+    </div>
+    
+    <table class="table table-striped" id="statusTable">
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Region</th>
+                <th>Database</th>
+                <th>Refresh Date</th>
+                <th>Expected Refresh Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var status in Model)
+            {
+                <tr>
+                    <td>@status.Company</td>
+                    <td>@status.Region</td>
+                    <td>@status.Database</td>
+                    <td>@(status.RefreshDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A")</td>
+                    <td>@status.ExpectedRefreshDate.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        @if (status.Status == "OK")
+                        {
+                            <span class="text-success">@status.Status</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">@status.Status</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        function refreshTable() {
+            $('#refreshText').hide();
+            $('#refreshLoader').show();
+            
+            $.post('@Url.Action("RefreshDatabaseStatus", "Home")', function(response) {
+                if (response.success) {
+                    var tbody = $('#statusTable tbody');
+                    tbody.empty();
+                    
+                    response.data.forEach(function(status) {
+                        var statusClass = status.status === 'OK' ? 'text-success' : 'text-danger';
+                        var refreshDate = status.refreshDate ? new Date(status.refreshDate).toLocaleString('sv-SE').replace('T', ' ').substring(0, 19) : 'N/A';
+                        var expectedDate = new Date(status.expectedRefreshDate).toISOString().substring(0, 10);
+                        
+                        var row = '<tr>' +
+                            '<td>' + status.company + '</td>' +
+                            '<td>' + status.region + '</td>' +
+                            '<td>' + status.database + '</td>' +
+                            '<td>' + refreshDate + '</td>' +
+                            '<td>' + expectedDate + '</td>' +
+                            '<td><span class="' + statusClass + '">' + status.status + '</span></td>' +
+                            '</tr>';
+                        tbody.append(row);
+                    });
+                    
+                    alert(response.message);
+                }
+            }).always(function() {
+                $('#refreshText').show();
+                $('#refreshLoader').hide();
+            });
+        }
+        
+        function exportToExcel() {
+            window.location.href = '@Url.Action("ExportDatabaseStatus", "Home")';
+        }
+    </script>
+}

@@ -1,0 +1,101 @@
+@model List<CompanySite.Models.UserAccessRequest>
+@{
+    ViewData["Title"] = "Submitted access requests";
+}
+
+<div class="container">
+    <h2>Submitted Access Requests</h2>
+    
+    <div class="form-group">
+        <label>Filter requests queue</label>
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="filterType" value="outstanding" checked onchange="filterChanged()"> Outstanding requests
+            </label>
+            <label>
+                <input type="radio" name="filterType" value="all" onchange="filterChanged()"> All requests
+            </label>
+        </div>
+    </div>
+    
+    <div class="button-group">
+        <button class="btn btn-primary" onclick="refreshTable()">
+            <span id="refreshText">Refresh Table</span>
+            <span id="refreshLoader" class="loading" style="display:none;"></span>
+        </button>
+        <button class="btn btn-success" onclick="exportToExcel()">Export to Excel</button>
+    </div>
+    
+    <table class="table table-striped" id="requestsTable">
+        <thead>
+            <tr>
+                <th>Ref</th>
+                <th>Status</th>
+                <th>Category</th>
+                <th>Requestor Name</th>
+                <th>Date of Request</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var request in Model)
+            {
+                <tr>
+                    <td>@request.Id</td>
+                    <td>@request.Status</td>
+                    <td>@(request.RequestType == "A" ? "Add access request" : "Remove access request")</td>
+                    <td>@request.RequestorName</td>
+                    <td>@request.CreateDate.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                    <td>@request.UserName - @request.RequestDetails</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        function filterChanged() {
+            refreshTable();
+        }
+        
+        function refreshTable() {
+            $('#refreshText').hide();
+            $('#refreshLoader').show();
+            
+            var outstandingOnly = $('input[name="filterType"]:checked').val() === 'outstanding';
+            
+            $.post('@Url.Action("RefreshAccessRequests", "Home")', { outstandingOnly: outstandingOnly }, function(response) {
+                if (response.success) {
+                    var tbody = $('#requestsTable tbody');
+                    tbody.empty();
+                    
+                    response.data.forEach(function(request) {
+                        var category = request.requestType === 'A' ? 'Add access request' : 'Remove access request';
+                        var createDate = new Date(request.createDate).toLocaleString('sv-SE').replace('T', ' ').substring(0, 19);
+                        
+                        var row = '<tr>' +
+                            '<td>' + request.id + '</td>' +
+                            '<td>' + request.status + '</td>' +
+                            '<td>' + category + '</td>' +
+                            '<td>' + request.requestorName + '</td>' +
+                            '<td>' + createDate + '</td>' +
+                            '<td>' + request.userName + ' - ' + request.requestDetails + '</td>' +
+                            '</tr>';
+                        tbody.append(row);
+                    });
+                    
+                    alert(response.message);
+                }
+            }).always(function() {
+                $('#refreshText').show();
+                $('#refreshLoader').hide();
+            });
+        }
+        
+        function exportToExcel() {
+            var outstandingOnly = $('input[name="filterType"]:checked').val() === 'outstanding';
+            window.location.href = '@Url.Action("ExportAccessRequests", "Home")?outstandingOnly=' + outstandingOnly;
+        }
+    </script>
+}

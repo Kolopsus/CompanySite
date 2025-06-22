@@ -1,0 +1,76 @@
+@model List<CompanySite.Models.Report>
+@{
+    ViewData["Title"] = "Available Reports";
+}
+
+<div class="container">
+    <h2>Available Reports</h2>
+    
+    <div class="button-group">
+        <button class="btn btn-primary" onclick="refreshTable()">
+            <span id="refreshText">Refresh Table</span>
+            <span id="refreshLoader" class="loading" style="display:none;"></span>
+        </button>
+        <button class="btn btn-success" onclick="exportToExcel()">Export to Excel</button>
+    </div>
+    
+    <table class="table table-striped" id="reportsTable">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Reference</th>
+                <th>Description</th>
+                <th>Report Exe</th>
+                <th>Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var report in Model)
+            {
+                <tr>
+                    <td>@report.Title</td>
+                    <td>@report.Reference</td>
+                    <td>@report.Description</td>
+                    <td>@report.ReportExe</td>
+                    <td>@report.Updated.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        function refreshTable() {
+            $('#refreshText').hide();
+            $('#refreshLoader').show();
+            
+            $.post('@Url.Action("RefreshReports", "Home")', function(response) {
+                if (response.success) {
+                    var tbody = $('#reportsTable tbody');
+                    tbody.empty();
+                    
+                    response.data.forEach(function(report) {
+                        var row = '<tr>' +
+                            '<td>' + report.title + '</td>' +
+                            '<td>' + report.reference + '</td>' +
+                            '<td>' + report.description + '</td>' +
+                            '<td>' + report.reportExe + '</td>' +
+                            '<td>' + new Date(report.updated).toLocaleString('sv-SE').replace('T', ' ').substring(0, 19) + '</td>' +
+                            '</tr>';
+                        tbody.append(row);
+                    });
+                    
+                    alert(response.message);
+                }
+            }).always(function() {
+                $('#refreshText').show();
+                $('#refreshLoader').hide();
+            });
+        }
+        
+        function exportToExcel() {
+            window.location.href = '@Url.Action("ExportReports", "Home")';
+        }
+    </script>
+}

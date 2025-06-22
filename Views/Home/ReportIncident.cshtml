@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = "Report an incident / request a re-run";
+}
+
+<div class="container">
+    <h2>Report an Incident / Request a Re-run</h2>
+    
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum consectetur ligula vel scelerisque facilisis. Sed posuere consectetur est at lobortis. Donec id elit non mi porta gravida at eget metus.</p>
+    
+    <p>Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui.</p>
+    
+    <p>Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.</p>
+    
+    <div class="button-group mt-4">
+        <a href="#" class="btn btn-primary" onclick="openIncidentReport(); return false;">Create an incident</a>
+        <a href="#" class="btn btn-primary" onclick="openRerunRequest(); return false;">Request a re-run</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openIncidentReport() {
+            window.open('https://mycompany.net/incidentreport', '_blank');
+        }
+        
+        function openRerunRequest() {
+            window.open('https://mycompany.net/teamrequest', '_blank');
+        }
+    </script>
+}
