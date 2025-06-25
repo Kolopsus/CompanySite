@@ -10,80 +10,222 @@
     
     <p>Sed consectetur, ipsum a blandit molestie, turpis lorem facilisis magna, sed pulvinar massa nunc id lorem. Nulla facilisi.</p>
     
-    <form id="accessRequestForm">
+    <form id="accessRequestForm" method="post" asp-action="SubmitAccessRequest" asp-controller="Home">
+        @Html.AntiForgeryToken()
+        
         <div class="form-group">
             <label>Choose action</label>
             <div class="radio-group">
                 <label>
-                    <input type="radio" name="requestType" value="A" checked onchange="updateLabels()"> Add new user
+                    <input type="radio" name="RequestType" value="A" checked onchange="updateLabels()" required> Add new user
                 </label>
                 <label>
-                    <input type="radio" name="requestType" value="R" onchange="updateLabels()"> Remove user
+                    <input type="radio" name="RequestType" value="R" onchange="updateLabels()"> Remove user
                 </label>
             </div>
+            <span asp-validation-for="RequestType" class="text-danger"></span>
         </div>
         
         <div class="form-group">
-            <label for="yourName">Your name</label>
-            <select class="form-control" id="yourName" name="yourName">
+            <label for="YourName">Your name</label>
+            <select class="form-control" id="YourName" name="YourName" required asp-for="YourName">
                 <option value="">Select your name</option>
                 @foreach (var user in Model.Users)
                 {
-                    <option value="@user.UserName">@user.UserName</option>
+                    <option value="@Html.Encode(user.UserName)">@Html.Encode(user.UserName)</option>
                 }
             </select>
+            <span asp-validation-for="YourName" class="text-danger"></span>
         </div>
         
         <div class="form-group">
-            <label for="employeeName">Employee Name (to <span id="actionText">add</span> access)</label>
-            <input type="text" class="form-control" id="employeeName" name="employeeName">
+            <label for="EmployeeName">Employee Name (to <span id="actionText">add</span> access)</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="EmployeeName" 
+                   name="EmployeeName" 
+                   asp-for="EmployeeName"
+                   required 
+                   maxlength="100"
+                   pattern="[a-zA-Z\s\-'\.]+">
+            <span asp-validation-for="EmployeeName" class="text-danger"></span>
         </div>
         
         <div class="form-group">
-            <label for="employeeId">Employee Identificator (to <span id="actionText2">add</span> access)</label>
-            <input type="text" class="form-control" id="employeeId" name="employeeId">
+            <label for="EmployeeId">Employee Identificator (to <span id="actionText2">add</span> access)</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="EmployeeId" 
+                   name="EmployeeId" 
+                   asp-for="EmployeeId"
+                   required 
+                   maxlength="50"
+                   pattern="[a-zA-Z0-9\-_\.]+">
+            <span asp-validation-for="EmployeeId" class="text-danger"></span>
         </div>
         
         <div class="form-group">
-            <label for="requestDetails">Describe specifics about access like region, database or client name</label>
-            <textarea class="form-control" id="requestDetails" name="requestDetails" rows="4"></textarea>
+            <label for="RequestDetails">Describe specifics about access like region, database or client name</label>
+            <textarea class="form-control" 
+                      id="RequestDetails" 
+                      name="RequestDetails" 
+                      rows="4" 
+                      asp-for="RequestDetails"
+                      required 
+                      maxlength="1000"
+                      minlength="5"></textarea>
+            <span asp-validation-for="RequestDetails" class="text-danger"></span>
         </div>
         
-        <button type="button" class="btn btn-primary" onclick="submitRequest()">Submit request</button>
+        <button type="submit" class="btn btn-primary">Submit request</button>
     </form>
 </div>
 
 @section Scripts {
-    <script>
+    <script nonce="@ViewBag.ScriptNonce">
         function updateLabels() {
-            var action = $('input[name="requestType"]:checked').val() === 'A' ? 'add' : 'remove';
+            var action = $('input[name="RequestType"]:checked').val() === 'A' ? 'add' : 'remove';
             $('#actionText').text(action);
             $('#actionText2').text(action);
         }
         
-        function submitRequest() {
-            var formData = {
-                requestType: $('input[name="requestType"]:checked').val(),
-                yourName: $('#yourName').val(),
-                employeeName: $('#employeeName').val(),
-                employeeId: $('#employeeId').val(),
-                requestDetails: $('#requestDetails').val()
-            };
+        $(document).ready(function() {
+            // Security: Enhanced form validation
+            $('#accessRequestForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Security: Check rate limiting
+                if (!checkRateLimit()) {
+                    return false;
+                }
+                
+                // Validate form data
+                if (!validateAccessRequestForm()) {
+                    return false;
+                }
+                
+                // Collect and sanitize form data
+                var formData = {
+                    RequestType: $('input[name="RequestType"]:checked').val(),
+                    YourName: $('#YourName').val().trim(),
+                    EmployeeName: $('#EmployeeName').val().trim(),
+                    EmployeeId: $('#EmployeeId').val().trim(),
+                    RequestDetails: $('#RequestDetails').val().trim(),
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                };
+                
+                // Security: Additional client-side validation
+                if (!isValidInput(formData.EmployeeName) || 
+                    !isValidInput(formData.EmployeeId) || 
+                    !isValidInput(formData.RequestDetails)) {
+                    showError('Invalid characters detected in form data.');
+                    return false;
+                }
+                
+                // Submit request
+                $.ajax({
+                    url: '@Url.Action("SubmitAccessRequest", "Home")',
+                    type: 'POST',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        if (response && response.success) {
+                            showError(sanitizeHtml(response.message || 'Request submitted successfully'));
+                            $('#accessRequestForm')[0].reset();
+                            updateLabels();
+                        } else {
+                            showError(sanitizeHtml(response.message || 'Failed to submit request'));
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        if (xhr.status === 400) {
+                            showError('Invalid request data. Please check your input.');
+                        } else if (xhr.status === 403) {
+                            showError('Access denied. Please contact your administrator.');
+                        } else {
+                            showError('Error submitting request. Please try again later.');
+                        }
+                    }
+                });
+                
+                return false;
+            });
             
-            if (!formData.yourName || !formData.employeeName || !formData.employeeId || !formData.requestDetails) {
-                alert('Please fill in all fields');
-                return;
-            }
-            
-            $.post('@Url.Action("SubmitAccessRequest", "Home")', formData, function(response) {
-                if (response.success) {
-                    alert(response.message);
-                    $('#accessRequestForm')[0].reset();
-                    updateLabels();
+            // Security: Real-time input validation
+            $('#EmployeeName, #EmployeeId').on('input', function() {
+                var input = $(this);
+                var value = input.val();
+                
+                if (value && !isValidInput(value)) {
+                    highlightInvalidField(input, 'Invalid characters detected');
                 } else {
-                    alert(response.message);
+                    input.removeClass('is-invalid');
+                    input.siblings('.invalid-feedback').remove();
                 }
             });
+            
+            // Security: Prevent paste of potentially malicious content
+            $('#EmployeeName, #EmployeeId, #RequestDetails').on('paste', function(e) {
+                var input = $(this);
+                setTimeout(function() {
+                    var value = input.val();
+                    if (!isValidInput(value)) {
+                        input.val('');
+                        highlightInvalidField(input, 'Pasted content contains invalid characters');
+                    }
+                }, 1);
+            });
+        });
+        
+        function validateAccessRequestForm() {
+            var isValid = true;
+            
+            // Check required fields
+            var requiredFields = ['YourName', 'EmployeeName', 'EmployeeId', 'RequestDetails'];
+            requiredFields.forEach(function(fieldName) {
+                var field = $('#' + fieldName);
+                if (!field.val().trim()) {
+                    highlightInvalidField(field, 'This field is required');
+                    isValid = false;
+                }
+            });
+            
+            // Validate name fields
+            var namePattern = /^[a-zA-Z\s\-'\.]+$/;
+            if ($('#EmployeeName').val() && !namePattern.test($('#EmployeeName').val())) {
+                highlightInvalidField($('#EmployeeName'), 'Only letters, spaces, hyphens, apostrophes and periods are allowed');
+                isValid = false;
+            }
+            
+            // Validate employee ID
+            var idPattern = /^[a-zA-Z0-9\-_\.]+$/;
+            if ($('#EmployeeId').val() && !idPattern.test($('#EmployeeId').val())) {
+                highlightInvalidField($('#EmployeeId'), 'Only letters, numbers, hyphens, underscores and periods are allowed');
+                isValid = false;
+            }
+            
+            // Validate length constraints
+            if ($('#EmployeeName').val().length > 100) {
+                highlightInvalidField($('#EmployeeName'), 'Employee name must be 100 characters or less');
+                isValid = false;
+            }
+            
+            if ($('#EmployeeId').val().length > 50) {
+                highlightInvalidField($('#EmployeeId'), 'Employee ID must be 50 characters or less');
+                isValid = false;
+            }
+            
+            if ($('#RequestDetails').val().length > 1000) {
+                highlightInvalidField($('#RequestDetails'), 'Request details must be 1000 characters or less');
+                isValid = false;
+            }
+            
+            if ($('#RequestDetails').val().length < 5) {
+                highlightInvalidField($('#RequestDetails'), 'Request details must be at least 5 characters');
+                isValid = false;
+            }
+            
+            return isValid;
         }
     </script>
 }

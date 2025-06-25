@@ -28,10 +28,10 @@
             @foreach (var report in Model)
             {
                 <tr>
-                    <td>@report.Title</td>
-                    <td>@report.Reference</td>
-                    <td>@report.Description</td>
-                    <td>@report.ReportExe</td>
+                    <td>@Html.Encode(report.Title)</td>
+                    <td>@Html.Encode(report.Reference)</td>
+                    <td>@Html.Encode(report.Description)</td>
+                    <td>@Html.Encode(report.ReportExe)</td>
                     <td>@report.Updated.ToString("yyyy-MM-dd HH:mm:ss")</td>
                 </tr>
             }
@@ -40,37 +40,96 @@
 </div>
 
 @section Scripts {
-    <script>
+    <script nonce="@ViewBag.ScriptNonce">
         function refreshTable() {
+            // Security: Check rate limiting
+            if (!checkRateLimit()) {
+                return;
+            }
+            
             $('#refreshText').hide();
             $('#refreshLoader').show();
             
-            $.post('@Url.Action("RefreshReports", "Home")', function(response) {
-                if (response.success) {
-                    var tbody = $('#reportsTable tbody');
-                    tbody.empty();
-                    
-                    response.data.forEach(function(report) {
-                        var row = '<tr>' +
-                            '<td>' + report.title + '</td>' +
-                            '<td>' + report.reference + '</td>' +
-                            '<td>' + report.description + '</td>' +
-                            '<td>' + report.reportExe + '</td>' +
-                            '<td>' + new Date(report.updated).toLocaleString('sv-SE').replace('T', ' ').substring(0, 19) + '</td>' +
-                            '</tr>';
-                        tbody.append(row);
-                    });
-                    
-                    alert(response.message);
+            // Security: Add CSRF token to form data
+            var formData = new FormData();
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            if (token) {
+                formData.append('__RequestVerificationToken', token);
+            }
+            
+            $.ajax({
+                url: '@Url.Action("RefreshReports", "Home")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response && response.success) {
+                        var tbody = $('#reportsTable tbody');
+                        tbody.empty();
+                        
+                        if (response.data && Array.isArray(response.data)) {
+                            response.data.forEach(function(report) {
+                                // Security: Sanitize all data before inserting
+                                var title = sanitizeHtml(report.title || '');
+                                var reference = sanitizeHtml(report.reference || '');
+                                var description = sanitizeHtml(report.description || '');
+                                var reportExe = sanitizeHtml(report.reportExe || '');
+                                var updated = report.updated ? new Date(report.updated).toLocaleString('sv-SE').replace('T', ' ').substring(0, 19) : '';
+                                
+                                var row = $('<tr></tr>');
+                                row.append($('<td></td>').text(title));
+                                row.append($('<td></td>').text(reference));
+                                row.append($('<td></td>').text(description));
+                                row.append($('<td></td>').text(reportExe));
+                                row.append($('<td></td>').text(updated));
+                                tbody.append(row);
+                            });
+                        }
+                        
+                        showError(sanitizeHtml(response.message || 'Table refreshed successfully'));
+                    } else {
+                        showError('Failed to refresh table. Please try again.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showError('Error refreshing reports. Please try again later.');
+                },
+                complete: function() {
+                    $('#refreshText').show();
+                    $('#refreshLoader').hide();
                 }
-            }).always(function() {
-                $('#refreshText').show();
-                $('#refreshLoader').hide();
             });
         }
         
         function exportToExcel() {
-            window.location.href = '@Url.Action("ExportReports", "Home")';
+            // Security: Check rate limiting
+            if (!checkRateLimit()) {
+                return;
+            }
+            
+            // Security: Create form with CSRF token
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("ExportReports", "Home")';
+            form.style.display = 'none';
+            
+            // Add CSRF token
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            if (token) {
+                var tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token;
+                form.appendChild(tokenInput);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
         }
     </script>
+    
+    <!-- CSRF Token -->
+    @Html.AntiForgeryToken()
 }

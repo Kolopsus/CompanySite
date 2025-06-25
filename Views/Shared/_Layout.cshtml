@@ -3,9 +3,17 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CompanySite : @ViewData["SubpageTitle"]</title>
+    <title>@Html.Encode($"CompanySite : {ViewData["SubpageTitle"]}")</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    
+    <!-- Security meta tags -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    
+    <!-- CSRF token for AJAX requests -->
+    <meta name="csrf-token" content="@Html.AntiForgeryToken().ToString()">
 </head>
 <body>
     <div class="container-fluid">
@@ -14,7 +22,7 @@
         </div>
         
         <div class="title-section">
-            <h1>CompanySite : @ViewData["SubpageTitle"]</h1>
+            <h1>@Html.Encode($"CompanySite : {ViewData["SubpageTitle"]}")</h1>
         </div>
         
         <nav class="menu-section">
@@ -43,6 +51,22 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <!-- Security: Setup CSRF token for AJAX -->
+    <script nonce="@ViewBag.ScriptNonce">
+        // Setup CSRF token for all AJAX requests
+        $(document).ready(function() {
+            var token = $('meta[name="csrf-token"]').attr('content');
+            if (token) {
+                $.ajaxSetup({
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader('X-CSRF-TOKEN', token);
+                    }
+                });
+            }
+        });
+    </script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

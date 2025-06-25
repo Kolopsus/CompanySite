@@ -142,22 +142,35 @@ body {
 .btn-primary {
   background-color: #3498db;
   border-color: #3498db;
-  margin-right: 10px;
+  color: white;
 }
 
 .btn-primary:hover {
   background-color: #2980b9;
   border-color: #2980b9;
+  color: white;
 }
 
 .btn-success {
   background-color: #27ae60;
   border-color: #27ae60;
+  color: white;
 }
 
 .btn-success:hover {
   background-color: #229954;
   border-color: #229954;
+  color: white;
+}
+
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
+.button-group .btn {
+  display: inline-flex;
+  width: auto;
 }
 
 .form-group {
@@ -257,6 +270,7 @@ body {
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-left: 10px;
+  vertical-align: middle;
 }
 
 @keyframes spin {
@@ -290,6 +304,9 @@ body {
 
 .button-group {
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .external-link {
@@ -306,4 +323,19 @@ body {
 .external-link:hover {
   background-color: #3498db;
   color: white;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 4px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  vertical-align: middle;
+  white-space: nowrap;
 }

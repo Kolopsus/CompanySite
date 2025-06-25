@@ -7,16 +7,19 @@
     <h2>Schedules Dashboard</h2>
     
     <div class="row">
-        <div class="col-md-4">
-            <div class="frame">
-                <h3>Actions</h3>
-                <button class="btn btn-primary btn-block mb-2" onclick="refreshTable()">
-                    <span id="refreshText">Refresh Table</span>
-                    <span id="refreshLoader" class="loading" style="display:none;"></span>
-                </button>
-                <button class="btn btn-success btn-block" onclick="exportToExcel()">Export to Excel</button>
-            </div>
+        
+<div class="col-md-4">
+    <div class="frame">
+        <h3>Actions</h3>
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="refreshTable()">
+                <span id="refreshText">Refresh Table</span>
+                <span id="refreshLoader" class="loading" style="display:none;"></span>
+            </button>
+            <button class="btn btn-success" onclick="exportToExcel()">Export to Excel</button>
         </div>
+    </div>
+</div>
         
         <div class="col-md-4">
             <div class="frame">
@@ -108,10 +111,10 @@
 @section Scripts {
     <script>
         function applyFilters() {
-            refreshTable();
+            refreshTable(false); // false = don't show alert for filter changes
         }
         
-        function refreshTable() {
+        function refreshTable(showAlert = true) { // default to true for manual clicks
             $('#refreshText').hide();
             $('#refreshLoader').show();
             
@@ -152,7 +155,10 @@
                     $('#toGoCount').text(response.data.toGoCount);
                     $('#errorCount').text(response.data.errorCount);
                     
-                    alert(response.message);
+                    // Only show alert if it's a manual refresh
+                    if (showAlert) {
+                        alert(response.message);
+                    }
                 }
             }).always(function() {
                 $('#refreshText').show();
@@ -163,7 +169,27 @@
         function exportToExcel() {
             var todayOnly = $('#todayOnly').is(':checked');
             var filter = $('input[name="statusFilter"]:checked').val();
-            window.location.href = '@Url.Action("ExportSchedules", "Home")?todayOnly=' + todayOnly + '&filter=' + filter;
+            
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("ExportSchedules", "Home")';
+            form.style.display = 'none';
+            
+            var todayInput = document.createElement('input');
+            todayInput.type = 'hidden';
+            todayInput.name = 'todayOnly';
+            todayInput.value = todayOnly;
+            form.appendChild(todayInput);
+            
+            var filterInput = document.createElement('input');
+            filterInput.type = 'hidden';
+            filterInput.name = 'filter';
+            filterInput.value = filter;
+            form.appendChild(filterInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
         }
     </script>
 }

@@ -1,0 +1,100 @@
+@{
+    ViewData["Title"] = "Error";
+    ViewData["SubpageTitle"] = "Error";
+}
+
+<div class="container">
+    <div class="error-container">
+        <h2 class="text-danger">
+            <i class="error-icon">⚠️</i> @(ViewBag.ErrorType ?? "Error")
+        </h2>
+        
+        <div class="error-message-box">
+            <p class="error-message">@(ViewBag.ErrorMessage ?? "An unexpected error occurred. Please try again later.")</p>
+        </div>
+        
+        <div class="error-actions">
+            <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Return to Home</a>
+            <button onclick="window.history.back()" class="btn btn-secondary">Go Back</button>
+        </div>
+        
+        <div class="error-help">
+            <h4>Need Help?</h4>
+            <p>If this problem persists, please contact the support team:</p>
+            <ul>
+                <li>Email: <a href="mailto:tech@CompanySite.com">tech@CompanySite.com</a></li>
+                <li>Include the time of the error: @DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")</li>
+                <li>Describe what you were trying to do when the error occurred</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-container {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 30px;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .error-icon {
+        font-size: 2em;
+        vertical-align: middle;
+    }
+    
+    .error-message-box {
+        background-color: #fff;
+        border-left: 4px solid #dc3545;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 5px;
+    }
+    
+    .error-message {
+        font-size: 1.1em;
+        margin: 0;
+        color: #495057;
+    }
+    
+    .error-actions {
+        margin: 30px 0;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .error-help {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .error-help h4 {
+        color: #495057;
+        margin-bottom: 15px;
+    }
+    
+    .error-help ul {
+        list-style-type: disc;
+        margin-left: 20px;
+    }
+    
+    .error-help li {
+        margin-bottom: 8px;
+        color: #6c757d;
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+        color: white;
+    }
+</style>

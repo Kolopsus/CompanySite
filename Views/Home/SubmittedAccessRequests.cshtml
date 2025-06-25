@@ -56,10 +56,10 @@
 @section Scripts {
     <script>
         function filterChanged() {
-            refreshTable();
+            refreshTable(false); // false = don't show alert
         }
         
-        function refreshTable() {
+        function refreshTable(showAlert = true) { // default to true for manual clicks
             $('#refreshText').hide();
             $('#refreshLoader').show();
             
@@ -85,7 +85,10 @@
                         tbody.append(row);
                     });
                     
-                    alert(response.message);
+                    // Only show alert if it's a manual refresh
+                    if (showAlert) {
+                        alert(response.message);
+                    }
                 }
             }).always(function() {
                 $('#refreshText').show();
@@ -95,7 +98,21 @@
         
         function exportToExcel() {
             var outstandingOnly = $('input[name="filterType"]:checked').val() === 'outstanding';
-            window.location.href = '@Url.Action("ExportAccessRequests", "Home")?outstandingOnly=' + outstandingOnly;
+            
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("ExportAccessRequests", "Home")';
+            form.style.display = 'none';
+            
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'outstandingOnly';
+            input.value = outstandingOnly;
+            form.appendChild(input);
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
         }
     </script>
 }
